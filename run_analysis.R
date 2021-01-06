@@ -46,6 +46,10 @@ run_analysis <- function() {
     
     full_set$subject <- as.integer(full_set$subject)
     
+    for (key in 3:length(ncol(full_set))) {
+        full_set[,key] <- as.numeric(full_set[,key])
+    }
+    
     ## Uses descriptive activity names to name the activities in the data set
     activity_codes <- as.integer(full_set$activity)
     
@@ -70,29 +74,34 @@ run_analysis <- function() {
         result_set[spec_names[i]] <- full_set[spec_names[i]]
     }
     
+    # print(head(result_set))
     # Create another dataset with the average of each variable for each activity and each subject
     
-    count <- 1
+    average_rersult_set <- data.frame()
+    
+    row_num <- 1
     
     for (subj in 1:30) {
-        small_set <- data.frame()
-       
-        for (act in activity_codes) {
-           
-            aver_set <- filter(result_set, subject == subj & activity == act)
-           
-            small_set[count, 1] <- subj
-            small_set[count, 2] <- act
-           
-            for (key in 3:length(ncol(aver_set))) {
-               
-                small_set[count, key] <- mean(as.numeric(aver_set[, key]), na.rm = TRUE)
+        
+        for (act in activity_labels[,2]) {
+            
+            sub_set <- filter(result_set, subject == subj & activity == act)
+            
+            average_rersult_set[row_num, 1] <- subj
+            average_rersult_set[row_num, 2] <- act
+            
+            for (key in 3:ncol(result_set)) {
+                mean_val <- mean(sub_set[, key])
+                average_rersult_set[row_num, key] <- mean_val
             }
             
-            count <- count + 1
+            row_num <- row_num + 1
         }
-       
     }
+    colnames(average_rersult_set) <- names(result_set)
     
-    colnames(small_set, spec_names)
+    # create a text file with second tidy data set
+    write.table(average_rersult_set, file = 'second_tidy_data_set.txt', row.names = FALSE)
+    
+    result_set
 }
